@@ -22,8 +22,8 @@ public static class GlobalVariables
         {
             DateTime utcNow = DateTime.UtcNow;
             string currentTime = utcNow.ToString();
-            string filePath = @"F:\API\LogsEchoBot\" + myCallId +".txt";
-            if (!Directory.Exists(@"F:\API\LogsEchoBot"))
+            string filePath = @"C:\" + myCallId +".txt";
+            if (!Directory.Exists(@"C:\"))
             {
                 filePath = @"D:\Control\" + myCallId + ".txt";
             }

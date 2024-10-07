@@ -128,7 +128,7 @@ namespace EchoBot.Services.Bot
         private async Task SendHealthCheck()
         {
             var response = true;
-            var path = @"F:\API\EchoBot";
+            var path = @"C:\";
             if (System.IO.Directory.Exists(path))
             {
                 var files = System.IO.Directory.GetFiles(path);
