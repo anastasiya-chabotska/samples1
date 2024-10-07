@@ -106,7 +106,7 @@ namespace EchoBot.Bot
         /// </summary>
         public void Initialize()
         {
-            _logger.LogInformation("Initializing Bot Service");
+            _logger.LogInformation("Initializing Bot Service!!!!!!");
             var name = this.GetType().Assembly.GetName().Name;
             var builder = new CommunicationsClientBuilder(
                 name,
