@@ -86,9 +86,11 @@ namespace EchoBot.Services.Http.Controllers
             try
             {
                 _logger.LogInformation("JOIN CALL");
+                GlobalVariables.writeFileControl(5, " save ", "test");
                 GlobalVariables.temporaryLanguage = "en-US";
                 var body = await this.Request.Content.ReadAsStringAsync();
                 var call = await _botService.JoinCallAsync(joinCallBody).ConfigureAwait(false);
+                GlobalVariables.writeFileControl(5, " after join; call ", "test");
                 _logger.LogInformation($"Info Call is: {call}");
                 GlobalVariables.writeFileControl(1, "", call.Id);
                 GlobalVariables.MyGlobalLanguage.AddOrUpdate(call.Id, GlobalVariables.temporaryLanguage, (key, oldValue) => GlobalVariables.temporaryLanguage);
