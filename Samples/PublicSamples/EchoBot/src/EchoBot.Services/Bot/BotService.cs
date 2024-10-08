@@ -179,8 +179,8 @@ namespace EchoBot.Services.Bot
 
             GlobalVariables.keyAppId = _settings.AadAppId;
             GlobalVariables.keyAppSecret = _settings.AadAppSecret;
-            builder.SetNotificationUrl(new Uri("https://64e1-20-55-90-54.ngrok-free.app/api/calling"));
-            //builder.SetNotificationUrl(_azureSettings.CallControlBaseUrl);
+            //builder.SetNotificationUrl(new Uri("https://64e1-20-55-90-54.ngrok-free.app/api/calling"));
+            builder.SetNotificationUrl(_azureSettings.CallControlBaseUrl);
 
             Console.WriteLine("Initializing Bot Service step 7 -{0}.",_azureSettings.MediaPlatformSettings);
             builder.SetMediaPlatformSettings(_azureSettings.MediaPlatformSettings);
