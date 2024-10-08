@@ -304,7 +304,8 @@ namespace EchoBot.Services.Bot
                 {
                     currentLanguage = GlobalVariables.MyGlobalLanguage[myCallId];
                 }
-                var url = "https://new-messages-webhook-dev.azurewebsites.net/api/obtainSummary";
+                var url = "https://echobot-azure-function-python.azurewebsites.net/api/orchestrators/generate_summary";
+                //var url = "https://new-messages-webhook-dev.azurewebsites.net/api/obtainSummary";
                 //var url = "https://8918-20-55-90-54.ngrok-free.app/api/obtainSummary";
                 var datos = new { callId, tenantId, transcription, threadId, myOrganizerId, myOrganizerName, timeStart, timeEnd, currentLanguage, userEmailCurrent};
 
