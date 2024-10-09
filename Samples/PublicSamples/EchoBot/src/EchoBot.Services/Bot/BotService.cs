@@ -104,7 +104,7 @@ namespace EchoBot.Services.Bot
 
             Console.WriteLine("constructor echobot.services/bot/BotService step 1");
 
-            ServiceController sc = new ServiceController("EchoBotService");
+            ServiceController sc = new ServiceController("Echo Bot Service");
 
             Task.Run(async () =>
             {
