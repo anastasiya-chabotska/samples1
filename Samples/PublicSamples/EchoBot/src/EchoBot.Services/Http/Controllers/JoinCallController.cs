@@ -25,6 +25,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Extensions.Logging;
+using EchoBot.Services.Bot;
+using Microsoft.Graph.Communications.Common.Telemetry;
+
 
 namespace EchoBot.Services.Http.Controllers
 {
@@ -55,9 +58,40 @@ namespace EchoBot.Services.Http.Controllers
         public JoinCallController()
         {
             _botService = AppHost.AppHostInstance.Resolve<IBotService>();
-            //_botService2 = AppHost.AppHostInstance.Resolve<IBotService>(new { instanceId = "Instance2" });
             _settings = AppHost.AppHostInstance.Resolve<IOptions<AppSettings>>().Value;
             _logger = AppHost.AppHostInstance.Resolve<ILogger<JoinCallController>>();
+            /*_botService2 = AppHost.AppHostInstance.Resolve<IBotService>();
+            _botService2.SetAlternativeCredentials("881fc4a1-e9ac-4a1d-969c-cf8342d43b80", "JUx8Q~LF4EQL4.5-yVA0JiHgH5mNzw.QsJQ9la1k");
+
+            if (Object.ReferenceEquals(_botService, _botService2))
+            {
+                GlobalVariables.WriteGeneralLog("Warning: _botService and _botService2 are the same instance. This could lead to shared credential issues.", "Warning");
+            }
+            else
+            {
+                GlobalVariables.WriteGeneralLog("Info: _botService and _botService2 are independent instances with separate memory references.", "Info");
+            }*/
+
+            var graphLogger = AppHost.AppHostInstance.Resolve<IGraphLogger>();
+            var settings = AppHost.AppHostInstance.Resolve<IOptions<AppSettings>>();
+            var azureSettings = AppHost.AppHostInstance.Resolve<IAzureSettings>();
+            var logger = AppHost.AppHostInstance.Resolve<ILogger<BotService>>();
+
+            _botService2 = new BotService(
+                graphLogger,
+                logger,
+                settings,
+                azureSettings,
+                "881fc4a1-e9ac-4a1d-969c-cf8342d43b80", // alternativeAppId
+                "JUx8Q~LF4EQL4.5-yVA0JiHgH5mNzw.QsJQ9la1k"  // alternativeAppSecret
+            );
+
+            _settings = settings.Value;
+
+            if (_botService != null)
+            {
+                GlobalVariables.WriteGeneralLog("Info: _botService fue creado exitosamente usando el segundo constructor con credenciales alternativas.", "Info");
+            }
         }
 
         /// <summary>
@@ -86,11 +120,11 @@ namespace EchoBot.Services.Http.Controllers
             try
             {
                 _logger.LogInformation("JOIN CALL");
-                GlobalVariables.writeFileControl(5, " save ", "test");
                 GlobalVariables.temporaryLanguage = "en-US";
                 var body = await this.Request.Content.ReadAsStringAsync();
-                var call = await _botService.JoinCallAsync(joinCallBody).ConfigureAwait(false);
-                GlobalVariables.writeFileControl(5, " after join; call ", "test");
+                IBotService botServiceToUse = joinCallBody.newVersion ? _botService2 : _botService;
+                var call = await botServiceToUse.JoinCallAsync(joinCallBody).ConfigureAwait(false);
+                //var call = await _botService.JoinCallAsync(joinCallBody).ConfigureAwait(false);
                 _logger.LogInformation($"Info Call is: {call}");
                 GlobalVariables.writeFileControl(1, "", call.Id);
                 GlobalVariables.MyGlobalLanguage.AddOrUpdate(call.Id, GlobalVariables.temporaryLanguage, (key, oldValue) => GlobalVariables.temporaryLanguage);
@@ -199,7 +233,7 @@ namespace EchoBot.Services.Http.Controllers
             try
             {
                 _logger.LogInformation("LEAVE CALL");
-
+                GlobalVariables.writeFileControl(2, "LEAVE CALL", "test_info");
                 // Assuming EndCallByCallLegIdAsync is a method in _botService
                 await _botService.EndCallByCallLegIdAsync(callId).ConfigureAwait(false);
 
@@ -207,6 +241,7 @@ namespace EchoBot.Services.Http.Controllers
 
                 var response = this.Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new StringContent($"Call with ID {callId} has been left successfully.", Encoding.UTF8, "application/json");
+                GlobalVariables.writeFileControl(2, "LEAVE CALL 2", "test_info");
                 return response;
             }
             catch (ServiceException e)
@@ -224,6 +259,7 @@ namespace EchoBot.Services.Http.Controllers
                 }
 
                 response.Content = new StringContent(e.ToString());
+                GlobalVariables.writeFileControl(1, "ERROR LEAVE"+e.ToString(), "test_info");
                 return response;
             }
             catch (Exception e)
@@ -231,6 +267,7 @@ namespace EchoBot.Services.Http.Controllers
                 _logger.LogError(e, $"Received HTTP {this.Request.Method}, {this.Request.RequestUri}");
                 HttpResponseMessage response = this.Request.CreateResponse(HttpStatusCode.InternalServerError);
                 response.Content = new StringContent(e.Message);
+                GlobalVariables.writeFileControl(1, "ERROR LEAVE 2" + new StringContent(e.Message), "test_info");
                 return response;
             }
         }

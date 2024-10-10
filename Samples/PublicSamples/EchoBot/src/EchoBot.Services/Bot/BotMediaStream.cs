@@ -262,6 +262,13 @@ namespace EchoBot.Services.Bot
                 Console.WriteLine("La hora actual en UTC es 2: " + utcNow.ToString("HH:mm:ss"));
 
                 string filePath = @"C:\archivo_" + callId + ".txt";
+
+                if (System.IO.Directory.Exists(@"C:\API"))
+                {
+                    filePath = @"C:\API\call_" + callId + ".txt";
+                }
+
+
                 string userEmailCurrent = ""; 
 
                 try
@@ -296,7 +303,28 @@ namespace EchoBot.Services.Bot
                         }
                     }
                 }
-                string fileContent = IOFile.ReadAllText(filePath);
+                //string fileContent = IOFile.ReadAllText(filePath);
+                string fileContent = "";
+
+                for (int i = 0; i < 3; i++)
+                {
+                    try
+                    {
+                        fileContent = IOFile.ReadAllText(filePath);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+
+                        if (controlErrorParticipantsNotFound++ % 100 == 0)
+                            GlobalVariables.writeFileControl(4, "File BotMediaStream.cs, function sendSummary in filel content error for: " + ex.Message, callId);
+                        Console.WriteLine("Error reading file, attempt " + (i + 1) + ": " + ex.Message);
+                        if (i < 2) // Wait only if it's not the last attempt
+                        {
+                            System.Threading.Thread.Sleep(5000); // Wait for 5 seconds before retrying
+                        }
+                    }
+                }
                 string transcription = fileContent.Replace(Environment.NewLine, @"\n");
 
                 var currentLanguage = "en-US";

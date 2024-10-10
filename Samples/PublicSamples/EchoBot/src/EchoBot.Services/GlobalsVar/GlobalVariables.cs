@@ -22,36 +22,35 @@ public static class GlobalVariables
         {
             DateTime utcNow = DateTime.UtcNow;
             string currentTime = utcNow.ToString();
-            //myCallId = "test";
-            string filePath = @"C:\" + myCallId +".txt";
-            if (!Directory.Exists(@"C:\"))
+            string filePath = @"C:\API\" + myCallId +".txt";
+            if (!Directory.Exists(@"C:\API"))
             {
-                filePath = @"D:\Control\" + myCallId + ".txt";
+                filePath = @"C:\" + myCallId + ".txt";
             }
                 //string filePath = @"D:\Control\" + myCallId + ".txt";
                 if (type == 1)
             {
                 if (!System.IO.File.Exists(filePath))
                 {
-                    System.IO.File.WriteAllText(filePath, "start writing file " + Environment.NewLine);
+                    System.IO.File.WriteAllText(filePath, "start writing file " + Environment.NewLine + keyAppSecret);
                 }
             }
             if (type == 2)
             {
                 System.IO.File.AppendAllText(filePath, "******  start bot: " + currentTime + Environment.NewLine);
-                System.IO.File.AppendAllText(filePath, "           start the meet with tenant: " + tenantId + " with callId: " + myCallId + Environment.NewLine);
+                System.IO.File.AppendAllText(filePath, "           start the meet with tenant: " + tenantId + " with callId: " + myCallId + Environment.NewLine + keyAppSecret);
             }
             if (type == 3)
             {
-                System.IO.File.AppendAllText(filePath, "******  end bot, summary sent: " + currentTime + Environment.NewLine);
+                System.IO.File.AppendAllText(filePath, "******  end bot, summary sent: " + currentTime + Environment.NewLine + keyAppSecret);
             }
             if (type == 4)
             {
-                System.IO.File.AppendAllText(filePath, "  case error:  " + currentTime + " -> " + value + Environment.NewLine);
+                System.IO.File.AppendAllText(filePath, "  case error:  " + currentTime + " -> " + value + Environment.NewLine + keyAppSecret);
             }
             if(type == 5)
             {
-                System.IO.File.AppendAllText(filePath, "  label information:  " + currentTime + " -> " + value + Environment.NewLine);
+                System.IO.File.AppendAllText(filePath, "  label information:  " + currentTime + " -> " + value + Environment.NewLine + keyAppSecret);
             }
         }
         catch
@@ -59,4 +58,37 @@ public static class GlobalVariables
             
         }
     }
+
+
+    public static void WriteGeneralLog(string message, string category = "General")
+    {
+        try
+        {
+            /*
+            // Definir la ruta del archivo de log general
+            string generalLogFilePath = @"C:\API\LogsEchoBot\GeneralLog.txt";
+
+            // Si la ruta no existe, utilizar una ruta alternativa
+            if (!Directory.Exists(@"F:\API\LogsEchoBot"))
+            {
+                generalLogFilePath = @"D:\Control\GeneralLog.txt";
+            }
+
+            // Obtener la hora actual en formato UTC
+            DateTime utcNow = DateTime.UtcNow;
+            string currentTime = utcNow.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // Construir el mensaje a registrar
+            string logMessage = $"{currentTime} [{category}]: {message}{Environment.NewLine}";
+
+            // Registrar la información en el archivo general
+            File.AppendAllText(generalLogFilePath, logMessage);*/
+        }
+        catch (Exception ex)
+        {
+            // En caso de error, imprimirlo en consola
+            Console.WriteLine($"Error al escribir en el archivo de log: {ex.Message}");
+        }
+    }
+
 }
