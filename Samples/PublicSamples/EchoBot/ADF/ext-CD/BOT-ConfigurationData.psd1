@@ -76,6 +76,7 @@
                 @{Prefix = 'AppSettings:'; KVName = '{0}-kv'; Name = 'UseSpeechService' },
                 @{Prefix = 'AppSettings:'; KVName = '{0}-kv'; Name = 'SpeechConfigRegion' },
                 @{Prefix = 'AppSettings:'; KVName = '{0}-kv'; Name = 'BotLanguage' }
+                @{Prefix = 'AzureSettings:'; KVName = '{0}-kv'; Name = 'BotLanguage' }
             )
 
             # Blob copy with Managed Identity - Oauth2
