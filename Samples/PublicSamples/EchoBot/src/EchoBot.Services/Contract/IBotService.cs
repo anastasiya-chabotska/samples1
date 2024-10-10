@@ -53,6 +53,13 @@ namespace EchoBot.Services.Contract
         /// <returns>The <see cref="ICall" /> that was requested to join.</returns>
         Task<ICall> JoinCallAsync(JoinCallBody joinCallBody);
 
+        /// <summary>
+        /// Sets the alternative credentials for the bot.
+        /// </summary>
+        /// <param name="alternativeAppId">The alternative app id.</param>
+        /// <param name="alternativeAppSecret">The alternative app secret.</param>
+        void SetAlternativeCredentials(string alternativeAppId, string alternativeAppSecret);
+
         void Dispose();
     }
 }

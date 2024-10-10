@@ -53,7 +53,7 @@ namespace EchoBot.Services.Http.Controllers
         {
             var response = this.Request.CreateResponse(HttpStatusCode.OK);
 
-            var path = @"C:\";
+            var path = @"C:\API\EchoBot";
             if (Directory.Exists(path))
             {
                 var files = Directory.GetFiles(path);

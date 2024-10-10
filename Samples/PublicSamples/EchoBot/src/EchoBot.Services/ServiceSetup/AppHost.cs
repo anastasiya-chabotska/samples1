@@ -105,11 +105,9 @@ namespace EchoBot.Services.ServiceSetup
         /// </summary>
         public void StartServer()
         {
-
-            //Console.Write("try start event");
             try
             {
-//Console.Write("intput in AppHost try");
+                Console.Write("intput in AppHost try");
                 _graphLogger = Resolve<IGraphLogger>();
                 _botService.Initialize();
                 var callStartOptions = new StartOptions();

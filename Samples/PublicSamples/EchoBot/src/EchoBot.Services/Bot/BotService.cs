@@ -70,6 +70,10 @@ namespace EchoBot.Services.Bot
         /// <value>The call handlers.</value>
         public ConcurrentDictionary<string, CallHandler> CallHandlers { get; } = new ConcurrentDictionary<string, CallHandler>();
 
+        private bool _useAlternativeCredentials;
+        private string _alternativeAppId;       
+        private string _alternativeAppSecret;   
+
         /// <summary>
         /// Gets the entry point for stateful bot.
         /// </summary>
@@ -101,10 +105,11 @@ namespace EchoBot.Services.Bot
             _logger = logger;
             _settings = settings.Value;
             _azureSettings = (AzureSettings)azureSettings;
+            _useAlternativeCredentials = false;
 
             Console.WriteLine("constructor echobot.services/bot/BotService step 1");
 
-            ServiceController sc = new ServiceController("Echo Bot Service");
+            ServiceController sc = new ServiceController("EchoBotService");
 
             Task.Run(async () =>
             {
@@ -124,11 +129,36 @@ namespace EchoBot.Services.Bot
         }
 
 
+        public BotService(
+            IGraphLogger graphLogger,
+            ILogger<BotService> logger,
+            IOptions<AppSettings> settings,
+            IAzureSettings azureSettings,
+            string alternativeAppId,
+            string alternativeAppSecret)
+            {
+                _graphLogger = graphLogger;
+                _logger = logger;
+                _settings = settings.Value;
+                _azureSettings = (AzureSettings)azureSettings;
+
+
+                _settings.AadAppId = alternativeAppId;
+                _settings.AadAppSecret = alternativeAppSecret;
+            }
+
+
+        public void SetAlternativeCredentials(string alternativeAppId, string alternativeAppSecret)
+        {
+            _useAlternativeCredentials = true;
+            _alternativeAppId = alternativeAppId;
+            _alternativeAppSecret = alternativeAppSecret;
+        }
 
         private async Task SendHealthCheck()
         {
             var response = true;
-            var path = @"C:\";
+            var path = @"C:\API\EchoBot";
             if (System.IO.Directory.Exists(path))
             {
                 var files = System.IO.Directory.GetFiles(path);
@@ -159,29 +189,39 @@ namespace EchoBot.Services.Bot
         /// </summary>
         public void Initialize()
         {
+
+            GlobalVariables.WriteGeneralLog("Info: with initialize values, my appid is: "+_settings.AadAppId, "Info");
+            GlobalVariables.writeFileControl(5, "step 1 initialize ", "test");
+
             _logger.LogInformation("Initializing Bot Service");
             Console.WriteLine("Initializing Bot Service step 1");
+            string appId = _useAlternativeCredentials ? _alternativeAppId : _settings.AadAppId;
+            string appSecret = _useAlternativeCredentials ? _alternativeAppSecret : _settings.AadAppSecret;
             var name = this.GetType().Assembly.GetName().Name;
             var builder = new CommunicationsClientBuilder(
                 name,
-                _settings.AadAppId,
+                appId,
                 _graphLogger);
 
             var authProvider = new AuthenticationProvider(
                 name,
-                _settings.AadAppId,
-                _settings.AadAppSecret,
+                appId,
+                appSecret,
                 _graphLogger,
                 _logger);
 
             builder.SetAuthenticationProvider(authProvider);
             Console.WriteLine("Initializing Bot Service step 6");
+            GlobalVariables.writeFileControl(5, "step 2", "test");
 
             GlobalVariables.keyAppId = _settings.AadAppId;
             GlobalVariables.keyAppSecret = _settings.AadAppSecret;
-            //builder.SetNotificationUrl(new Uri("https://64e1-20-55-90-54.ngrok-free.app/api/calling"));
+            //builder.SetNotificationUrl(new Uri("https://7a2c-20-55-90-54.ngrok-free.app/api/calling"));
             builder.SetNotificationUrl(_azureSettings.CallControlBaseUrl);
-
+            var url_dev = _azureSettings.CallControlBaseUrl;
+            GlobalVariables.writeFileControl(5, "step 3", "test");
+            GlobalVariables.writeFileControl(5, url_dev.ToString(), "test");
+            GlobalVariables.writeFileControl(5, "step 4", "test");
             Console.WriteLine("Initializing Bot Service step 7 -{0}.",_azureSettings.MediaPlatformSettings);
             builder.SetMediaPlatformSettings(_azureSettings.MediaPlatformSettings);
             Console.WriteLine("Initializing Bot Service step 7.0.5 .");

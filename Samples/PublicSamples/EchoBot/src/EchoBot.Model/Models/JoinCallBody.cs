@@ -36,5 +36,6 @@ namespace EchoBot.Model.Models
         /// <value>The display name.</value>
         public string DisplayName { get; set; }
         public string userEmail { get; set; }
+        public bool newVersion { get; set; }
     }
 }
