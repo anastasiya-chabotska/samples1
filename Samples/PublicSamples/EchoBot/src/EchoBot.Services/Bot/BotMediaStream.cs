@@ -85,6 +85,7 @@ namespace EchoBot.Services.Bot
         private string myMainLenguage = "en-US";
         private int[] myLenguagesId = new int[] { 0, 0 };///0: English, 1: Spanish
         private int counterParticipantTokens = 0;
+        private int counterErrorsOnAudioMediaReceived  = 0;
         private int controlInformationLabelParticipantsNotFound = 0;
         private int controlErrorParticipantsNotFound = 0;
         /// <summary>
@@ -281,7 +282,7 @@ namespace EchoBot.Services.Bot
                 } catch (Exception ex)
                 {
                     GlobalVariables.writeFileControl(4, "File BotMediaStream.cs, function sendSummary found email: " + ex.Message, callId);
-                    Console.WriteLine($"Se produjo una excepción: {ex.Message}");
+                    Console.WriteLine($"Se produjo una excepciï¿½n: {ex.Message}");
                     userEmailCurrent = "error"; 
                 }
                 Console.WriteLine(" ------ my Email is: ");
@@ -501,7 +502,8 @@ namespace EchoBot.Services.Bot
                 catch (Exception ex)
                 {
                     this.GraphLogger.Error(ex);
-                    GlobalVariables.writeFileControl(4, "File BotMediaStream.cs, function OnAudioMediaReceived A: " + ex.Message, myCallId);
+                    if(counterErrorsOnAudioMediaReceived++%1000 == 0)
+                        GlobalVariables.writeFileControl(4, "File BotMediaStream.cs, function OnAudioMediaReceived A: " + ex.Message, myCallId);
                     _logger.LogError(ex, "OnAudioMediaReceived error");
                 }
                 finally
@@ -544,6 +546,7 @@ namespace EchoBot.Services.Bot
             catch (Exception ex)
             {
                 this.GraphLogger.Error(ex);
+                if(counterErrorsOnAudioMediaReceived++%1000 == 0)   
                     GlobalVariables.writeFileControl(4, "File BotMediaStream.cs, function OnAudioMediaReceived B: " + ex.Message, myCallId);
                     _logger.LogError(ex, "OnAudioMediaReceived error");
             }
@@ -626,7 +629,7 @@ namespace EchoBot.Services.Bot
                                             }
                                             break;
                                         }
-                                        // Si el ID de la fuente de audio es válido, agregarlo al diccionario.
+                                        // Si el ID de la fuente de audio es vï¿½lido, agregarlo al diccionario.
                                         if (!string.IsNullOrEmpty(audioSourceId))
                                         {
                                             displayNameDictionary[audioSourceId] = user["displayName"].ToString();
