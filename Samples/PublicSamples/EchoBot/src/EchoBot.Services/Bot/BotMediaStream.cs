@@ -502,7 +502,7 @@ namespace EchoBot.Services.Bot
                 catch (Exception ex)
                 {
                     this.GraphLogger.Error(ex);
-                    if(counterErrorsOnAudioMediaReceived++%1000 == 0)
+                    if(counterErrorsOnAudioMediaReceived++%1000 == 0) 
                         GlobalVariables.writeFileControl(4, "File BotMediaStream.cs, function OnAudioMediaReceived A: " + ex.Message, myCallId);
                     _logger.LogError(ex, "OnAudioMediaReceived error");
                 }
