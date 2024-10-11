@@ -55,12 +55,15 @@ namespace EchoBot.Services.Media
         /// Initializes a new instance of the <see cref="CognitiveServicesService" /> class.
         public CognitiveServicesService(AppSettings settings, ILogger logger, String newCallId, string speakerName, string language, string myfirstLenguage = "")
         {
+            GlobalVariables.WriteGeneralLog("--- Info: create new cognitive services serice 1: " + newCallId, "Info");
+
             _logger = logger;
             myCurrentCallId = newCallId;
             mainSpeaker = speakerName;
             firstLenguage = myfirstLenguage;
 
-            _speechConfig = SpeechConfig.FromSubscription(settings.SpeechConfigKey, settings.SpeechConfigRegion);
+            //_speechConfig = SpeechConfig.FromSubscription(settings.SpeechConfigKey, settings.SpeechConfigRegion);
+            _speechConfig = SpeechConfig.FromSubscription("9e07f79a331d48fd871220dd8a1e2f89", "eastus");
             _speechConfig.SpeechSynthesisLanguage = language;//settings.BotLanguage;
             _speechConfig.SpeechRecognitionLanguage = language;// settings.BotLanguage;
 
@@ -236,9 +239,11 @@ namespace EchoBot.Services.Media
                             return;
                         var autoDetectSourceLanguageResult = AutoDetectSourceLanguageResult.FromResult(e.Result);
                         _logger.LogInformation($"2 RECOGNIZED: Text={e.Result.Text} +={mainSpeaker}");
+
                         //{autoDetectSourceLanguageResult.Language}
 
                         string text = mainSpeaker + ": " + e.Result.Text;
+                        //GlobalVariables.WriteGeneralLog("--- Info: transcription: " + text, "Info");
                         //GlobalVariables.MyGlobalQueue.Enqueue(text);
                         if (GlobalVariables.MyGlobalDictionary.ContainsKey(myCurrentCallId))
                         {

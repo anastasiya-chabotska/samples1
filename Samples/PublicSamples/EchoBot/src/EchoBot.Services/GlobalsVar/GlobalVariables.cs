@@ -22,8 +22,8 @@ public static class GlobalVariables
         {
             DateTime utcNow = DateTime.UtcNow;
             string currentTime = utcNow.ToString();
-            string filePath = @"C:\API\" + myCallId +".txt";
-            if (!Directory.Exists(@"C:\API"))
+            string filePath = @"C:\API\logs\" + myCallId +".txt";
+            if (!Directory.Exists(@"C:\API\logs"))
             {
                 filePath = @"C:\" + myCallId + ".txt";
             }
@@ -66,13 +66,14 @@ public static class GlobalVariables
         {
             /*
             // Definir la ruta del archivo de log general
-            string generalLogFilePath = @"C:\API\LogsEchoBot\GeneralLog.txt";
+            string generalLogFilePath = @"C:\API\general_logs\GeneralLog.txt";
 
             // Si la ruta no existe, utilizar una ruta alternativa
-            if (!Directory.Exists(@"F:\API\LogsEchoBot"))
+            if (!Directory.Exists(@"C:\API\general_logs"))
             {
-                generalLogFilePath = @"D:\Control\GeneralLog.txt";
+                generalLogFilePath = @"D:\GeneralLog.txt";
             }
+
 
             // Obtener la hora actual en formato UTC
             DateTime utcNow = DateTime.UtcNow;
