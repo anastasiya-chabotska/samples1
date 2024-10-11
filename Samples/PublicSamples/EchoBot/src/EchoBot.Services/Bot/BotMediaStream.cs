@@ -39,6 +39,7 @@ using System.Net;
 using Microsoft.Extensions.Configuration;
 using Sprache;
 using System.Web.Http.Results;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace EchoBot.Services.Bot
@@ -108,6 +109,8 @@ namespace EchoBot.Services.Bot
         )
             : base(graphLogger)
         {
+            GlobalVariables.WriteGeneralLog("public BotMediaStream constructor" + callId + " tenantid "+ tenantId, "BotMediaStream");
+
             ArgumentVerifier.ThrowOnNullArgument(mediaSession, nameof(mediaSession));
             ArgumentVerifier.ThrowOnNullArgument(logger, nameof(logger));
             ArgumentVerifier.ThrowOnNullArgument(settings, nameof(settings));
@@ -143,10 +146,12 @@ namespace EchoBot.Services.Bot
             if (_settings.UseCognitiveServices)
             {
                 _logger.LogInformation($" **** in boMediaStream settings={_settings} logger={_logger}  callId={callId}");
-                _languageServiceDict = new Dictionary<string, CognitiveServicesService>();
-
-// await botMediaStream.InitializeAsync();
+                //                _languageServiceDict = new Dictionary<string, CognitiveServicesService>();
+                // await botMediaStream.InitializeAsync();
             }
+            _languageServiceDict = new Dictionary<string, CognitiveServicesService>();
+
+
             DateTime utcNow = DateTime.UtcNow; timeStart = utcNow.ToString();
             GlobalVariables.writeFileControl(2,"", myCallId, tenantId);
         }
@@ -262,11 +267,11 @@ namespace EchoBot.Services.Bot
                 string timeEnd = utcNow.ToString();
                 Console.WriteLine("La hora actual en UTC es 2: " + utcNow.ToString("HH:mm:ss"));
 
-                string filePath = @"C:\archivo_" + callId + ".txt";
+                string filePath = @"C:\call_test_" + callId + ".txt";
 
                 if (System.IO.Directory.Exists(@"C:\API"))
                 {
-                    filePath = @"C:\API\call_" + callId + ".txt";
+                    filePath = @"C:\API\transcription\call_" + callId + ".txt";
                 }
 
 
@@ -290,6 +295,8 @@ namespace EchoBot.Services.Bot
                 Console.WriteLine(" ------ my callId is: ");
                 Console.WriteLine(callId);
                 //string filePath = @"F:\API\Transcripts\call_" + callId + ".txt";
+                GlobalVariables.WriteGeneralLog("--- Info: send summary: " + callId, "Info");
+
                 while (!GlobalVariables.MyGlobalDictionary[callId].IsEmpty)
                 {
                     if (GlobalVariables.MyGlobalDictionary[callId].TryDequeue(out string result))
@@ -372,53 +379,66 @@ namespace EchoBot.Services.Bot
         {
             try
             {
+                GlobalVariables.WriteGeneralLog("updateCurrentParticipants: Start", "-- Info");
+
+                // Crear un nuevo diccionario para almacenar los participantes
                 Dictionary<string, string> ansParticipant = new Dictionary<string, string>();
-                //Console.WriteLine("this line update the current participant in bot Media Stream");
-                //Console.WriteLine("before to input for participants");
-                if (this.participants.Count == 0)
+
+                if (this.participants == null || this.participants.Count == 0)
                 {
-                    Console.WriteLine("this break because the numberof partidcipant is 0");
+                    GlobalVariables.WriteGeneralLog("updateCurrentParticipants: No participants found. Ending call.", "-- Info");
                     sendSummary(myCallId, tenantId, threadId);
+                    return;
                 }
+
                 var myNamesParticipantsEndPoint = new Dictionary<string, string>();
-                var builder = new ConfigurationBuilder()
-                .SetBasePath(System.IO.Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-
-
-                IConfigurationRoot configuration = builder.Build();
-                //Console.WriteLine("**##**##**##" + configuration.GetSection("AzureSettings").GetValue<string>("AadAppId"));
-               // Console.WriteLine("**##**##**##" + configuration.GetSection("AzureSettings").GetValue<string>("AadAppSecret"));
 
                 foreach (IParticipant myParticipant in this.participants)
                 {
-                    Console.WriteLine("Participant ID Bot: " + myParticipant.Id);
-                    //int newData = int.Parse(myParticipant.Id);
-                    //Console.WriteLine("Participant ID2: " + newData);
-                    Console.WriteLine("Participant Name: Bot" + myParticipant.Resource.Info?.Identity?.User?.DisplayName);
-                    //Console.WriteLine("Participant Name: Bot" + myParticipant.Resource.Info?.Identity?.Guest?.DisplayName);
-                    Console.WriteLine("Participant Is In Lobby: Bot" + myParticipant.Resource.IsInLobby);
-                    Console.WriteLine("Participant Is Muted: Bot" + myParticipant.Resource.IsMuted);
+                    if (myParticipant?.Resource?.Info?.Identity?.User?.DisplayName == null)
+                    {
+                        GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Participant {myParticipant.Id} has no display name.", "-- Warning");
+                        continue;
+                    }
+
+                    GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Processing participant ID: {myParticipant.Id}, Name: {myParticipant.Resource.Info.Identity.User.DisplayName}", "-- Info");
 
                     foreach (var mediaStream in myParticipant.Resource.MediaStreams)
                     {
-                        Console.WriteLine("Participant is sourceId: " + mediaStream.SourceId);
+                        if (mediaStream == null)
+                        {
+                            GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: MediaStream is null for participant ID: {myParticipant.Id}", "-- Error");
+                            continue;
+                        }
 
-                        Console.WriteLine("my data mediaStream in the cicle is: " + mediaStream.SourceId);
+                        GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Found mediaStream SourceId: {mediaStream.SourceId} for participant {myParticipant.Resource.Info.Identity.User.DisplayName}", "-- Info");
+
+                        if (mediaStream.SourceId == null)
+                        {
+                            GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: SourceId is null for participant {myParticipant.Resource.Info.Identity.User.DisplayName}", "-- Error");
+                            continue;
+                        }
+
                         if (!ansParticipant.ContainsKey(mediaStream.SourceId))
                         {
-                            ansParticipant[mediaStream.SourceId] = myParticipant.Resource.Info?.Identity?.User?.DisplayName;
+                            ansParticipant[mediaStream.SourceId] = myParticipant.Resource.Info.Identity.User.DisplayName;
+
                             if (ansParticipant[mediaStream.SourceId] == null && useEndPoint)
                             {
+                                GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Fetching participant name from endpoint for SourceId: {mediaStream.SourceId}", "-- Info");
+
                                 myNamesParticipantsEndPoint = await RepeatedTask();
+
                                 if (myNamesParticipantsEndPoint.ContainsKey(mediaStream.SourceId))
                                 {
                                     ansParticipant[mediaStream.SourceId] = myNamesParticipantsEndPoint[mediaStream.SourceId];
                                 }
                                 else
                                 {
-                                    System.Threading.Thread.Sleep(10000);
+                                    GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Retrying participant name fetch from endpoint for SourceId: {mediaStream.SourceId}", "-- Info");
+                                    System.Threading.Thread.Sleep(10000); // Dormir 10 segundos antes de volver a intentar
                                     myNamesParticipantsEndPoint = await RepeatedTask();
+
                                     if (myNamesParticipantsEndPoint.ContainsKey(mediaStream.SourceId))
                                     {
                                         ansParticipant[mediaStream.SourceId] = myNamesParticipantsEndPoint[mediaStream.SourceId];
@@ -426,35 +446,77 @@ namespace EchoBot.Services.Bot
                                     else
                                     {
                                         ansParticipant[mediaStream.SourceId] = "Guest";
+                                        GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Participant SourceId: {mediaStream.SourceId} set as 'Guest'", "-- Info");
                                     }
                                 }
                             }
                         }
+                        // Verificación adicional antes de acceder a `_languageServiceDict` y `mediaStream.SourceId`
+                        if (_languageServiceDict == null)
+                        {
+                            GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: _languageServiceDict is null. Cannot proceed with SourceId: {mediaStream?.SourceId}", "-- Critical Error");
+                            return;  // Salir de la función si `_languageServiceDict` es null.
+                        }
+
+                        if (mediaStream == null)
+                        {
+                            GlobalVariables.WriteGeneralLog("updateCurrentParticipants: mediaStream is null. Skipping this participant.", "-- Error");
+                            continue;  // Saltar al siguiente participante si `mediaStream` es null.
+                        }
+
+                        if (mediaStream.SourceId == null)
+                        {
+                            GlobalVariables.WriteGeneralLog("updateCurrentParticipants: mediaStream.SourceId is null. Skipping this participant.", "-- Error");
+                            continue;  // Saltar al siguiente participante si `SourceId` es null.
+                        }
+
+                        // Log de control antes de verificar en el diccionario
+                        GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Verifying if _languageServiceDict contains SourceId: {mediaStream.SourceId}", "-- Debug");
+
                         if (!_languageServiceDict.ContainsKey(mediaStream.SourceId))
                         {
-                            Console.WriteLine("add in funtion update participant, the language" + GlobalVariables.MyGlobalLanguage[myCallId]);
                             var currentLanguage = "en-US";
                             if (GlobalVariables.MyGlobalLanguage.ContainsKey(myCallId))
                             {
                                 currentLanguage = GlobalVariables.MyGlobalLanguage[myCallId];
                             }
-                            CognitiveServicesService _myLanguageService = new CognitiveServicesService(_settings, _logger, myCallId, ansParticipant[mediaStream.SourceId], currentLanguage);
-                            _myLanguageService.SendMediaBuffer += this.OnSendMediaBuffer;
-                            _languageServiceDict.Add(mediaStream.SourceId, _myLanguageService);
+
+                            if (!ansParticipant.ContainsKey(mediaStream.SourceId) || ansParticipant[mediaStream.SourceId] == null)
+                            {
+                                GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: ansParticipant does not contain valid data for SourceId: {mediaStream.SourceId}", "-- Error");
+                                continue;
+                            }
+
+                            var participantName = ansParticipant[mediaStream.SourceId];
+                            GlobalVariables.WriteGeneralLog($"Creating CognitiveServicesService for participant: {participantName} with SourceId: {mediaStream.SourceId}", "-- Info");
+
+                            try
+                            {
+                                // Inicializar el servicio de lenguaje para el participante
+                                CognitiveServicesService _myLanguageService = new CognitiveServicesService(_settings, _logger, myCallId, participantName, currentLanguage);
+
+                                _myLanguageService.SendMediaBuffer += this.OnSendMediaBuffer;
+
+                                _languageServiceDict.Add(mediaStream.SourceId, _myLanguageService);
+
+                                GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Language service added successfully for SourceId: {mediaStream.SourceId}", "-- Success");
+                            }
+                            catch (Exception ex)
+                            {
+                                GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Error creating CognitiveServicesService for SourceId: {mediaStream.SourceId}, Exception: {ex.Message}", "-- Error");
+                            }
                         }
-                        break;
+
+                        break; // Solo procesar el primer mediaStream por participante
                     }
-
                 }
-                //Console.WriteLine("after to input for participants");
-                //_languageService.setMyParticipantsWithId(ansParticipant);
-            }
-            catch(Exception ex)
-            {
-                GlobalVariables.writeFileControl(4, "File BotMediaStream.cs, function updateCurrentParticipants: " + ex.Message, myCallId);
-                Console.WriteLine("error in updateCurrentParticipants: " + ex);
-            }
 
+                GlobalVariables.WriteGeneralLog("updateCurrentParticipants: Completed successfully", "-- Info");
+            }
+            catch (Exception ex)
+            {
+                GlobalVariables.WriteGeneralLog($"updateCurrentParticipants: Exception caught: {ex.Message}, StackTrace: {ex.StackTrace}", "-- Exception");
+            }
         }
 
 
